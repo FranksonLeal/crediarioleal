@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Crediário</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js" type="module"></script>
+    <script src="script.js" type="module" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Sistema de Crediário</h1>
+        <nav>
+            <button id="menuCadastro">Cadastrar Cliente</button>
+            <button id="menuEditar">Editar Cliente</button>
+            <button id="menuExcluir">Excluir Cliente</button>
+            <button id="menuCompra">Registrar Compra</button>
+            <button id="menuConsulta">Consultar Crediário</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="cadastroSection" style="display: none;">
+            <h2>Cadastrar Cliente</h2>
+            <form id="clienteForm">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" placeholder="Nome" required>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Email" required>
+
+                <label for="limiteCredito">Limite de Crédito:</label>
+                <input type="number" id="limiteCredito" placeholder="Limite de Crédito" required min="0">
+
+                <button type="submit">Cadastrar</button>
+            </form>
+        </section>
+
+        <!-- <div id="compraSection" style="display: none;">
+            <h2>Registrar Compra</h2>
+            <form id="compraForm">
+                <label for="clienteCompra">Cliente:</label>
+                <select id="clienteCompra" required>
+                    <option value="">Selecione um cliente</option>
+                </select>
+                <br>
+                <label for="valor">Valor da Compra:</label>
+                <input type="number" id="valor" placeholder="Valor da Compra" required min="0">
+                <br>
+                <button type="submit">Registrar Compra</button>
+            </form>
+        </div> -->
+
+
+
+        <div id="compraSection" style="display: none;">
+            <h2>Registrar Compra</h2>
+            <form id="compraForm">
+                <label for="clienteCompra">Cliente:</label>
+                <input type="text" id="clienteInput" placeholder="Digite o nome do cliente" required oninput="filtrarClientes()">
+                <select id="clienteCompra" required>
+                    <option value="">Selecione um cliente</option>
+                    <!-- Opções de clientes serão preenchidas dinamicamente -->
+                </select>
+                <br>
+                <label for="valor">Valor da Compra:</label>
+                <input type="number" id="valor" placeholder="Valor da Compra" required min="0">
+                <br>
+                <button type="submit">Registrar Compra</button>
+            </form>
+        </div>
+        
+
+        <div id="consultaSection" style="display: none;">
+            <h2>Consulta de Faturas</h2>
+            <form id="consultaForm">
+                <label for="clienteConsultaInput">Cliente:</label>
+                <input type="text" id="clienteConsultaInput" placeholder="Digite o nome do cliente" oninput="filtrarClientesConsulta()">
+        
+                <select id="clienteConsulta" required>
+                    <option value="">Selecione um cliente</option>
+                </select>
+                
+                <label for="mesConsulta">Mês:</label>
+                <select id="mesesFaturas" required></select>
+                
+                <button type="submit">Consultar Faturas</button>
+            </form>
+            <div id="resultadoConsulta"></div>
+            
+            <!-- Botão para pagar fatura -->
+            <button id="pagarFatura">Pagar Fatura</button>
+            
+            <div id="faturaDetalhes"></div>
+            <div id="transferirSaldo" style="display: block;">
+                <h3>Transferir Saldo para o Próximo Mês</h3>
+                <form id="transferirSaldoForm">
+                    <label for="valorTransferencia">Valor a Transferir:</label>
+                    <input type="number" id="valorTransferencia" placeholder="Valor a Transferir" min="0">
+                    <button type="submit">Transferir para Próximo Mês</button>
+                </form>
+            </div>
+        </div>
+        
+
+        <section id="editarSection" style="display: none;">
+            <h2>Editar Cliente</h2>
+            <form id="editarForm">
+                <label for="editarCliente">Selecionar Cliente:</label>
+                <input type="text" id="editarClienteInput" placeholder="Digite para filtrar" onkeyup="filtrarClientesEditar()">
+                <select id="editarCliente" required></select>
+        
+                <label for="novoNome">Novo Nome:</label>
+                <input type="text" id="novoNome" placeholder="Novo Nome" required>
+        
+                <label for="novoEmail">Novo Email:</label>
+                <input type="email" id="novoEmail" placeholder="Novo Email" required>
+        
+                <label for="novoLimiteCredito">Novo Limite de Crédito:</label>
+                <input type="number" id="novoLimiteCredito" placeholder="Novo Limite de Crédito" required min="0">
+        
+                <button type="submit">Atualizar Cliente</button>
+            </form>
+        </section>
+        
+
+        <section id="excluirSection" style="display: none;">
+            <h2>Excluir Cliente</h2>
+            <form id="excluirForm">
+                <label for="clienteInput">Cliente:</label>
+                <input type="text" id="clienteInputExcluir" placeholder="Digite para filtrar" onkeyup="filtrarClientesExcluir()">
+                
+                <select id="clienteExcluir" required ></select>
+                    
+        
+                <label for="clienteNome">Nome do Cliente:</label>
+                <input type="text" id="clienteNome" placeholder="Nome do Cliente" disabled>
+        
+                <label for="clienteEmail">Email do Cliente:</label>
+                <input type="email" id="clienteEmail" placeholder="Email do Cliente" disabled>
+        
+                <button type="submit">Excluir Cliente</button>
+            </form>
+        </section>
+        
+        
+        
+        
+        
+    </main>
+</body>
+
+</html>
