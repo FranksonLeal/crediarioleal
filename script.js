@@ -142,6 +142,67 @@ window.filtrarClientes = async function() {
     }
 }
 
+// // Registrar Compra
+// document.getElementById('compraForm').addEventListener('submit', async (event) => {
+//     event.preventDefault();
+
+//     const clienteId = document.getElementById('clienteCompra').value;
+//     const valor = parseFloat(document.getElementById('valor').value);
+
+//     if (!clienteId) {
+//         alert('Selecione um cliente!');
+//         return;
+//     }
+
+//     try {
+//         const clienteRef = doc(db, "clientes", clienteId);
+//         const clienteSnap = await getDoc(clienteRef);
+
+//         if (clienteSnap.exists()) {
+//             const clienteData = clienteSnap.data();
+//             const limiteCredito = clienteData.limiteCredito;
+//             const faturas = clienteData.faturas || {};
+
+//             const dataAtual = new Date();
+//             const mesAnoAtual = dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+
+//             let totalMensal = 0;
+//             if (Array.isArray(faturas[mesAnoAtual])) {
+//                 totalMensal = faturas[mesAnoAtual].reduce((acc, compra) => acc + compra.valor, 0);
+//             }
+
+//             const valorDisponivel = limiteCredito - totalMensal;
+
+//             if (valor > valorDisponivel) {
+//                 alert(`Compra não registrada! Limite disponível: R$ ${valorDisponivel.toFixed(2)}`);
+//                 return;
+//             }
+
+//             if (!faturas[mesAnoAtual]) {
+//                 faturas[mesAnoAtual] = [];
+//             }
+
+//             faturas[mesAnoAtual].push({
+//                 valor: valor,
+//                 data: dataAtual.toLocaleDateString()
+//             });
+
+//             await updateDoc(clienteRef, { faturas: faturas });
+
+//             alert('Compra registrada com sucesso!');
+//             document.getElementById('compraForm').reset();
+//             select.innerHTML = '<option value="">Selecione um cliente</option>'; // Reseta o select
+//         } else {
+//             alert('Cliente não encontrado!');
+//         }
+//     } catch (error) {
+//         console.error('Erro ao registrar compra:', error);
+//         alert('Erro ao registrar a compra. Tente novamente.');
+//     }
+// });
+
+
+// Registrar Compra
 // Registrar Compra
 document.getElementById('compraForm').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -182,7 +243,9 @@ document.getElementById('compraForm').addEventListener('submit', async (event) =
                 faturas[mesAnoAtual] = [];
             }
 
+            // Adiciona a nova compra
             faturas[mesAnoAtual].push({
+                tipo: 'Compra',
                 valor: valor,
                 data: dataAtual.toLocaleDateString()
             });
@@ -200,6 +263,7 @@ document.getElementById('compraForm').addEventListener('submit', async (event) =
         alert('Erro ao registrar a compra. Tente novamente.');
     }
 });
+
 
 
 
@@ -415,7 +479,6 @@ function getProximoMesNome(mesAtual) {
         "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
     ];
 
-    // Divide o mesAtual em nome do mês e ano
     const [mesNome, ano] = mesAtual.toLowerCase().split(" de ");
     const mesIndex = meses.indexOf(mesNome);
 
@@ -424,7 +487,6 @@ function getProximoMesNome(mesAtual) {
         return null;
     }
 
-    // Calcula o próximo mês e ano
     const novoMesIndex = (mesIndex + 1) % 12;
     const novoAno = novoMesIndex === 0 ? parseInt(ano) + 1 : ano;
     const proximoMesNome = `${meses[novoMesIndex]} de ${novoAno}`;
@@ -432,16 +494,10 @@ function getProximoMesNome(mesAtual) {
     return proximoMesNome;
 }
 
-
-
-
-
-
-// Função para exibir fatura de um mês específico
 // Função para exibir fatura de um mês específico
 window.mostrarFaturaDoMes = async function (clienteId, mes) {
     const resultadoConsulta = document.getElementById('resultadoConsulta');
-    resultadoConsulta.innerHTML = ''; // Limpa resultados anteriores
+    resultadoConsulta.innerHTML = ''; 
 
     try {
         const clienteRef = doc(db, "clientes", clienteId);
@@ -452,31 +508,29 @@ window.mostrarFaturaDoMes = async function (clienteId, mes) {
             const faturas = clienteData.faturas || {};
             let totalFatura = 0; // Inicializa o total da fatura
             
-            // Verifica se existem faturas para o mês selecionado
             if (faturas[mes] && faturas[mes].length > 0) {
                 resultadoConsulta.innerHTML = `<h3>Faturas para ${clienteData.nome} no mês de ${mes}:</h3>`;
                 
                 faturas[mes].forEach((fatura) => {
-                    const valorFatura = fatura.valor || 0; // Pega o valor se existir, senão 0
-                    const pagamentoFatura = fatura.pagamento || 0; // Pega o pagamento se existir, senão 0
-                    const transferenciaFatura = fatura.transferencia || 0; // Pega a transferência se existir, senão 0
-                    
-                    totalFatura += valorFatura; // Acumula o valor total da fatura
-                    totalFatura -= (pagamentoFatura + transferenciaFatura); // Subtrai os pagamentos e transferências
+                    const valorFatura = fatura.valor || 0;
+                    const tipoFatura = fatura.tipo;
 
-                    // Exibe as informações da fatura
+                    // Atualiza o total da fatura
+                    if (tipoFatura === 'Compra') {
+                        totalFatura += valorFatura; // Soma o valor da compra
+                    } else if (tipoFatura === 'Pagamento') {
+                        totalFatura -= valorFatura; // Subtrai o valor do pagamento
+                    } else if (tipoFatura === 'Transferência') {
+                        totalFatura -= valorFatura; // Subtrai o valor da transferência
+                    }
+                    
+                    // Exibe os detalhes da fatura
                     if (valorFatura > 0) {
-                        resultadoConsulta.innerHTML += `<p>Compra: R$ ${valorFatura} em ${fatura.data}</p>`;
-                    }
-                    if (pagamentoFatura > 0) {
-                        resultadoConsulta.innerHTML += `<p>Pagamento: R$ ${pagamentoFatura} em ${fatura.data}</p>`;
-                    }
-                    if (transferenciaFatura > 0) {
-                        resultadoConsulta.innerHTML += `<p>Transferência: R$ ${transferenciaFatura} em ${fatura.data}</p>`;
+                        resultadoConsulta.innerHTML += `<p>${tipoFatura}: R$ ${valorFatura.toFixed(2)} em ${fatura.data}</p>`;
                     }
                 });
 
-                // Exibe o total da fatura atualizada
+                // Exibe o total da fatura ao final
                 resultadoConsulta.innerHTML += `<h4>Total Atual da Fatura: R$ ${totalFatura.toFixed(2)}</h4>`;
             } else {
                 resultadoConsulta.innerHTML = 'Não há faturas disponíveis para o mês selecionado.';
@@ -489,7 +543,6 @@ window.mostrarFaturaDoMes = async function (clienteId, mes) {
         resultadoConsulta.innerHTML = 'Erro ao carregar a fatura.';
     }
 };
-
 
 
 
@@ -514,36 +567,51 @@ document.getElementById('transferirSaldoForm').addEventListener('submit', async 
                 const clienteData = clienteSnap.data();
                 const faturas = clienteData.faturas || {};
 
-                // Verificar se existem faturas para o mês atual
                 if (faturas[mesAtual]) {
-                    // Calcular o total da fatura atual
-                    let totalFaturaAtual = faturas[mesAtual].reduce((acc, compra) => acc + (compra.valor || 0), 0);
-                    // Calcular total dos pagamentos realizados
-                    let totalPagamentos = faturas[mesAtual].reduce((acc, compra) => acc + (compra.pagamento || 0), 0);
-
-                    // Calcular saldo disponível
+                    // Calcula o total da fatura atual e pagamentos
+                    let totalFaturaAtual = faturas[mesAtual].reduce((acc, fatura) => acc + (fatura.valor || 0), 0);
+                    let totalPagamentos = faturas[mesAtual].reduce((acc, fatura) => acc + (fatura.pagamento || 0), 0);
                     let saldoDisponivel = totalFaturaAtual - totalPagamentos;
 
-                    // Verificar se o valor a ser transferido é maior que o saldo disponível
                     if (valorTransferencia > saldoDisponivel) {
                         alert('O valor a ser transferido é maior que o saldo disponível!');
                         return;
                     }
 
-                    // Adiciona um registro de transferência ao mês atual
-                    if (!Array.isArray(faturas[mesAtual])) {
-                        faturas[mesAtual] = []; // Inicializa se não existir
-                    }
-
+                    // Adiciona a transferência à fatura atual
                     faturas[mesAtual].push({
-                        transferencia: valorTransferencia, // Armazena a transferência
+                        tipo: 'Transferência',
+                        valor: valorTransferencia,
                         data: new Date().toLocaleDateString()
                     });
 
-                    // Atualiza o documento do cliente no Firestore
+                    // Atualiza o total da fatura atual
+                    let novoTotalFaturaAtual = totalFaturaAtual - valorTransferencia;
+
+                    // Adiciona uma nova fatura para o próximo mês, se não existir
+                    const proximoMes = getProximoMesNome(mesAtual);
+                    if (!faturas[proximoMes]) {
+                        faturas[proximoMes] = [];
+                    }
+
+                    // Adiciona o valor da transferência na nova fatura
+                    faturas[proximoMes].push({
+                        tipo: 'Transferência',
+                        valor: valorTransferencia,
+                        data: `Transferência de ${mesAtual}`
+                    });
+
+                    // Atualiza o total da nova fatura no mês seguinte
+                    let totalFaturaProximoMes = faturas[proximoMes].reduce((acc, fatura) => acc + (fatura.valor || 0), 0);
+                    totalFaturaProximoMes += valorTransferencia;
+
+                    // Atualiza as faturas no banco de dados
                     transaction.update(clienteRef, { faturas });
 
+                    // Exibe mensagem de sucesso
                     alert('Saldo transferido com sucesso!');
+
+                    // Reseta o formulário
                     document.getElementById('transferirSaldoForm').reset();
                 } else {
                     alert('Não há saldo disponível para o mês selecionado!');
@@ -559,15 +627,9 @@ document.getElementById('transferirSaldoForm').addEventListener('submit', async 
 });
 
 
-
-
-
-
-// Função para pagar fatura
-// Função para pagar fatura
 // Função para pagar fatura
 document.getElementById('pagarFatura').addEventListener('click', async () => {
-    const clienteId = document.getElementById('clienteConsulta').value; // Assume que o cliente está selecionado
+    const clienteId = document.getElementById('clienteConsulta').value; // ID do cliente
     const mes = document.getElementById('mesesFaturas').value; // Mês da fatura a ser paga
     let valorPagamento = parseFloat(prompt('Digite o valor a ser pago:')); // Solicita o valor do pagamento
 
@@ -588,13 +650,15 @@ document.getElementById('pagarFatura').addEventListener('click', async () => {
         if (clienteSnap.exists()) {
             const clienteData = clienteSnap.data();
             const faturas = clienteData.faturas || {};
-            let totalFatura = 0;
 
             // Verifica se existem faturas para o mês selecionado
             if (faturas[mes] && faturas[mes].length > 0) {
-                faturas[mes].forEach((fatura) => {
-                    totalFatura += fatura.valor || 0; // Soma os valores das faturas
-                });
+                // Obtém o total atual da fatura
+                let totalFatura = faturas[mes].reduce((acc, fatura) => {
+                    const valor = fatura.tipo === 'Compra' ? fatura.valor : 0;
+                    const pagamento = fatura.tipo === 'Pagamento' ? fatura.valor : 0;
+                    return acc + valor - pagamento;
+                }, 0);
 
                 // Validação do pagamento
                 if (valorPagamento > totalFatura) {
@@ -602,31 +666,20 @@ document.getElementById('pagarFatura').addEventListener('click', async () => {
                     return;
                 }
 
-                // Atualiza a fatura com o pagamento
-                faturas[mes].forEach((fatura) => {
-                    if (valorPagamento > 0) {
-                        const valorFatura = fatura.valor || 0;
-
-                        // Se o pagamento for maior que o valor da fatura
-                        if (valorPagamento >= valorFatura) {
-                            fatura.pagamento = (fatura.pagamento || 0) + valorFatura;
-                            fatura.valor = 0; // Fatura paga
-                            valorPagamento -= valorFatura; // Diminui o valor do pagamento
-                        } else {
-                            fatura.pagamento = (fatura.pagamento || 0) + valorPagamento; // Adiciona o pagamento
-                            fatura.valor -= valorPagamento; // Atualiza o valor da fatura
-                            valorPagamento = 0; // Zera o valor do pagamento
-                        }
-                    }
+                // Adiciona o pagamento à lista de faturas
+                faturas[mes].push({
+                    tipo: 'Pagamento',
+                    valor: valorPagamento,
+                    data: new Date().toLocaleDateString() // Registra a data do pagamento
                 });
 
-                // Atualiza o documento do cliente
+                // Atualiza o documento do cliente no Firestore
                 await updateDoc(clienteRef, { faturas });
 
-                // Atualiza o total da fatura
-                await mostrarFaturaDoMes(clienteId, mes); // Atualiza a exibição após o pagamento
+                // Atualiza a exibição do total da fatura
+                await mostrarFaturaDoMes(clienteId, mes);
 
-                alert('Pagamento realizado com sucesso!');
+                alert('Pagamento realizado com sucesso! O novo total da fatura é: R$ ' + (totalFatura - valorPagamento).toFixed(2));
             } else {
                 alert('Não há faturas disponíveis para o mês selecionado.');
             }
@@ -638,8 +691,6 @@ document.getElementById('pagarFatura').addEventListener('click', async () => {
         alert('Ocorreu um erro ao processar o pagamento.');
     }
 });
-
-
 
 
 
