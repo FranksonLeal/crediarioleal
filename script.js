@@ -1,8 +1,7 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
 import { getFirestore, collection, runTransaction, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js";
 
-// Your web app's Firebase configuration
+
 const firebaseConfig = {
     apiKey: "AIzaSyCT7dfUSq3TwIcVJ-Gh2Qodp-2sGcyM3Hs",
     authDomain: "crediarioleal.firebaseapp.com",
@@ -12,7 +11,7 @@ const firebaseConfig = {
     appId: "1:386757082416:web:42526e44c164935dcd9cf5"
 };
 
-// Initialize Firebase
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -20,9 +19,8 @@ const db = getFirestore(app);
 async function atualizarSelectClientes() {
     const selects = [
         document.getElementById('clienteConsulta'),
-        // document.getElementById('editarCliente'),
-        // document.getElementById('clienteExcluir')
-    ];  
+
+    ];
 
     selects.forEach(select => {
         if (select) {
@@ -60,7 +58,7 @@ async function atualizarSelectClientesCompra() {
 
 
 // Carregar todos os clientes ao iniciar a página
-window.onload = async function() {
+window.onload = async function () {
     const clienteCompraSelect = document.getElementById('clienteCompra');
     const clienteConsultaSelect = document.getElementById('clienteConsulta');
 
@@ -75,10 +73,10 @@ async function carregarClientes(selectElement) {
     try {
         // Limpa o select antes de preencher com novos dados
         selectElement.innerHTML = '<option value="">Selecione um cliente</option>';
-        
+
         // Consulta todos os clientes
         const clientesSnapshot = await getDocs(collection(db, "clientes"));
-        
+
         // Preenche o select com todos os clientes
         clientesSnapshot.forEach(doc => {
             const data = doc.data();
@@ -97,11 +95,15 @@ async function carregarClientes(selectElement) {
 
 
 
+
+
+// --------------------------------------INICIO DA SEÇÃO DE REGISTRO DE COMPRA---------------------------------------------------
+
 // Função para filtrar clientes na seção de compra
-window.filtrarClientes = async function() {
+window.filtrarClientes = async function () {
     const input = document.getElementById('clienteInput').value.toLowerCase();
     const select = document.getElementById('clienteCompra');
-    
+
     // Limpa o select antes de preencher com novos dados
     select.innerHTML = '<option value="">Selecione um cliente</option>';
 
@@ -142,67 +144,84 @@ window.filtrarClientes = async function() {
     }
 }
 
-// // Registrar Compra
-// document.getElementById('compraForm').addEventListener('submit', async (event) => {
-//     event.preventDefault();
-
-//     const clienteId = document.getElementById('clienteCompra').value;
-//     const valor = parseFloat(document.getElementById('valor').value);
-
-//     if (!clienteId) {
-//         alert('Selecione um cliente!');
-//         return;
-//     }
-
-//     try {
-//         const clienteRef = doc(db, "clientes", clienteId);
-//         const clienteSnap = await getDoc(clienteRef);
-
-//         if (clienteSnap.exists()) {
-//             const clienteData = clienteSnap.data();
-//             const limiteCredito = clienteData.limiteCredito;
-//             const faturas = clienteData.faturas || {};
-
-//             const dataAtual = new Date();
-//             const mesAnoAtual = dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-
-//             let totalMensal = 0;
-//             if (Array.isArray(faturas[mesAnoAtual])) {
-//                 totalMensal = faturas[mesAnoAtual].reduce((acc, compra) => acc + compra.valor, 0);
-//             }
-
-//             const valorDisponivel = limiteCredito - totalMensal;
-
-//             if (valor > valorDisponivel) {
-//                 alert(`Compra não registrada! Limite disponível: R$ ${valorDisponivel.toFixed(2)}`);
-//                 return;
-//             }
-
-//             if (!faturas[mesAnoAtual]) {
-//                 faturas[mesAnoAtual] = [];
-//             }
-
-//             faturas[mesAnoAtual].push({
-//                 valor: valor,
-//                 data: dataAtual.toLocaleDateString()
-//             });
-
-//             await updateDoc(clienteRef, { faturas: faturas });
-
-//             alert('Compra registrada com sucesso!');
-//             document.getElementById('compraForm').reset();
-//             select.innerHTML = '<option value="">Selecione um cliente</option>'; // Reseta o select
-//         } else {
-//             alert('Cliente não encontrado!');
-//         }
-//     } catch (error) {
-//         console.error('Erro ao registrar compra:', error);
-//         alert('Erro ao registrar a compra. Tente novamente.');
-//     }
-// });
 
 
-// Registrar Compra
+// Função para filtrar clientes e, em seguida, atualizar o limite disponível
+window.filtrarClientesEAtualizarLimite = async function () {
+    const clienteNome = document.getElementById('clienteInput').value;
+    const clienteSelect = document.getElementById('clienteCompra');
+
+    // Limpa as opções existentes
+    clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
+
+    // Filtra e preenche clientes (exemplo de chamada para o banco de dados)
+    const clientesRef = collection(db, "clientes");
+    const querySnapshot = await getDocs(clientesRef);
+
+    let clienteEncontrado = null;
+    querySnapshot.forEach((doc) => {
+        const clienteData = doc.data();
+        if (clienteData.nome.toLowerCase().includes(clienteNome.toLowerCase())) {
+            const option = document.createElement('option');
+            option.value = doc.id;
+            option.text = clienteData.nome;
+            clienteSelect.appendChild(option);
+
+            // Seleciona automaticamente o cliente
+            if (!clienteEncontrado) {
+                clienteEncontrado = doc.id;
+                clienteSelect.value = doc.id;
+            }
+        }
+    });
+
+    // Se um cliente foi encontrado e selecionado, atualiza o limite
+    if (clienteEncontrado) {
+        atualizarLimite();
+    }
+}
+
+// Função global para atualizar o limite
+window.atualizarLimite = async function () {
+    const clienteId = document.getElementById('clienteCompra').value;
+    const limiteDisponivelField = document.getElementById('limiteDisponivel');
+
+    if (!clienteId) {
+        limiteDisponivelField.value = "R$ 0,00";
+        return;
+    }
+
+    try {
+        const clienteRef = doc(db, "clientes", clienteId);
+        const clienteSnap = await getDoc(clienteRef);
+
+        if (clienteSnap.exists()) {
+            const clienteData = clienteSnap.data();
+            const limiteCredito = clienteData.limiteCredito;
+            const faturas = clienteData.faturas || {};
+
+            const dataAtual = new Date();
+            const mesAnoAtual = dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+
+            let totalMensal = 0;
+            if (Array.isArray(faturas[mesAnoAtual])) {
+                totalMensal = faturas[mesAnoAtual].reduce((acc, compra) => acc + compra.valor, 0);
+            }
+
+            const valorDisponivel = limiteCredito - totalMensal;
+            limiteDisponivelField.value = `R$ ${valorDisponivel.toFixed(2)}`;
+        } else {
+            limiteDisponivelField.value = "R$ 0,00";
+        }
+    } catch (error) {
+        console.error('Erro ao buscar limite disponível:', error);
+        limiteDisponivelField.value = "Erro ao carregar";
+    }
+};
+
+
+
+
 // Registrar Compra
 document.getElementById('compraForm').addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -265,7 +284,7 @@ document.getElementById('compraForm').addEventListener('submit', async (event) =
     }
 });
 
-
+// ----------------------------------------------FIM DA SEÇÃO DE REGISTRO DE COMPRA-------------------------------------------------
 
 
 
@@ -290,39 +309,16 @@ document.getElementById('menuConsulta').addEventListener('click', () => {
 document.getElementById('menuVisualizar').addEventListener('click', () => {
     mostrarSecao('visualizarClientesSection');
 });
-// document.getElementById('menuExcluir').addEventListener('click', () => {
-//     mostrarSecao('excluirSection');
-// });
-
-// // Cadastrar Cliente
-// document.getElementById('clienteForm').addEventListener('submit', async (event) => {
-//     event.preventDefault();
-//     const nome = document.getElementById('nome').value;
-//     const email = document.getElementById('email').value;
-//     const limiteCredito = parseFloat(document.getElementById('limiteCredito').value);
-
-//     try {
-//         // Inicializando faturas com um mês vazio
-//         await addDoc(collection(db, "clientes"), {
-//             nome,
-//             email,
-//             limiteCredito,
-//             faturas: {} // Inicializa faturas como um objeto vazio
-//         });
-//         alert('Cliente cadastrado com sucesso!');
-//         atualizarSelectClientes();
-//         document.getElementById('clienteForm').reset();
-//     } catch (error) {
-//         console.error('Erro ao cadastrar cliente:', error);
-//     }
-// });
 
 
 
 
 
-// INICIO DA SEÇÃO DE CADASTRO DE CLIENTE
 
+
+
+
+// ----------------------------------------------------INICIO DA SEÇÃO DE CADASTRO DE CLIENTE------------------------------------------
 
 // Formata o telefone no formato desejado
 document.getElementById('telefone').addEventListener('input', (event) => {
@@ -385,7 +381,7 @@ document.getElementById('clienteForm').addEventListener('submit', async (event) 
 });
 
 
-// FINALIZAÇÃO DO CADASTRO DE CLIENTES
+// ---------------------------------------------FIM DA SEÇÃO DE CCADASTRO DE CLIENTES-------------------------------------------------
 
 
 
@@ -405,6 +401,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+
+
+
+
+//------------------------------------------- INICIO DA SEÇÃO DE CONSULTAR CREDIARIO CLIENTE-----------------------------------------
+
 // Função para preencher o select de clientes na seção de consulta
 async function atualizarSelectClientesConsulta() {
     const selectClienteConsulta = document.getElementById('clienteConsulta');
@@ -414,15 +416,8 @@ async function atualizarSelectClientesConsulta() {
 
 
 
-
-
-
-
-
-
-
 // Função para filtrar clientes na seção de consulta
-window.filtrarClientesConsulta = async function() {
+window.filtrarClientesConsulta = async function () {
     const input = document.getElementById('clienteConsultaInput').value.toLowerCase();
     const select = document.getElementById('clienteConsulta');
 
@@ -537,30 +532,30 @@ document.addEventListener('DOMContentLoaded', atualizarSelectClientesConsulta);
 
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    window.mostrarModal = async function(clienteId, mes) {
+document.addEventListener('DOMContentLoaded', function () {
+    window.mostrarModal = async function (clienteId, mes) {
         const modal = document.getElementById('modalCobrar');
         modal.style.display = 'block';
 
         try {
             // Aguardar o total da fatura
             const totalFatura = await mostrarFaturaDoMes(clienteId, mes);
-            
+
             const clienteRef = doc(db, "clientes", clienteId);
             const clienteSnap = await getDoc(clienteRef);
 
             if (clienteSnap.exists()) {
                 const clienteData = clienteSnap.data();
                 const nomeCliente = clienteData.nome; // Supondo que o nome está no campo 'nome'
-                
+
                 const saudacao = gerarSaudacao();
 
                 // Preencher o campo de mensagem
                 const mensagemContainer = document.getElementById('mensagem');
                 mensagemContainer.value = `${saudacao} ${nomeCliente},\n\n` +
-    `Sua conta no Comercial Leal para este mês está no valor de R$${totalFatura.toFixed(2)}.\n\n` +
-    `Nos avise quando você realizar o pagamento.😊\n\n` +
-    `Comercial Leal agradece a preferência 🤝`;
+                    `Sua conta no Comercial Leal para este mês está no valor de R$${totalFatura.toFixed(2)}.\n\n` +
+                    `Nos avise quando você realizar o pagamento.😊\n\n` +
+                    `Comercial Leal agradece a preferência 🤝`;
 
                 // Exibir a mensagem formatada
                 const mensagemFormatada = document.getElementById('mensagemFormatada');
@@ -578,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
 
                 // Atualizar a mensagem formatada quando o texto do textarea mudar
-                mensagemContainer.addEventListener('input', function() {
+                mensagemContainer.addEventListener('input', function () {
                     mensagemFormatada.innerHTML = mensagemContainer.value.replace(/\n/g, '<br>');
                 });
 
@@ -657,11 +652,6 @@ async function enviarWhatsApp(clienteId, mensagem) {
 
 
 
-
-
-
-
-
 // Função para obter o próximo mês no formato "mesAno" (ex: "outubro de 2024")
 function getProximoMesNome(mesAtual) {
     const meses = [
@@ -686,63 +676,9 @@ function getProximoMesNome(mesAtual) {
 
 
 
-
-
-
-
-// // Função para exibir fatura de um mês específico
-// window.mostrarFaturaDoMes = async function (clienteId, mes) {
-//     const resultadoConsulta = document.getElementById('resultadoConsulta');
-//     resultadoConsulta.innerHTML = ''; 
-
-//     try {
-//         const clienteRef = doc(db, "clientes", clienteId);
-//         const clienteSnap = await getDoc(clienteRef);
-
-//         if (clienteSnap.exists()) {
-//             const clienteData = clienteSnap.data();
-//             const faturas = clienteData.faturas || {};
-//             let totalFatura = 0; // Inicializa o total da fatura
-            
-//             if (faturas[mes] && faturas[mes].length > 0) {
-//                 resultadoConsulta.innerHTML = `<h3>Faturas para ${clienteData.nome} no mês de ${mes}:</h3>`;
-                
-//                 faturas[mes].forEach((fatura) => {
-//                     const valorFatura = fatura.valor || 0;
-//                     const tipoFatura = fatura.tipo;
-
-//                     // Atualiza o total da fatura
-//                     if (tipoFatura === 'Compra') {
-//                         totalFatura += valorFatura; // Soma o valor da compra
-//                     } else if (tipoFatura === 'Pagamento') {
-//                         totalFatura -= valorFatura; // Subtrai o valor do pagamento
-//                     } else if (tipoFatura === 'Transferência') {
-//                         totalFatura -= valorFatura; // Subtrai o valor da transferência
-//                     }
-                    
-//                     // Exibe os detalhes da fatura
-//                     if (valorFatura > 0) {
-//                         resultadoConsulta.innerHTML += `<p>${tipoFatura}: R$ ${valorFatura.toFixed(2)} em ${fatura.data}</p>`;
-//                     }
-//                 });
-
-//                 // Exibe o total da fatura ao final
-//                 resultadoConsulta.innerHTML += `<h4>Total Atual da Fatura: R$ ${totalFatura.toFixed(2)}</h4>`;
-//             } else {
-//                 resultadoConsulta.innerHTML = 'Não há faturas disponíveis para o mês selecionado.';
-//             }
-//         } else {
-//             resultadoConsulta.innerHTML = 'Cliente não encontrado.';
-//         }
-//     } catch (error) {
-//         console.error('Erro ao mostrar fatura do mês:', error);
-//         resultadoConsulta.innerHTML = 'Erro ao carregar a fatura.';
-//     }
-// };
-
-window.mostrarFaturaDoMes = async function(clienteId, mes) {
+window.mostrarFaturaDoMes = async function (clienteId, mes) {
     const resultadoConsulta = document.getElementById('resultadoConsulta');
-    resultadoConsulta.innerHTML = ''; 
+    resultadoConsulta.innerHTML = '';
 
     try {
         const clienteRef = doc(db, "clientes", clienteId);
@@ -752,10 +688,10 @@ window.mostrarFaturaDoMes = async function(clienteId, mes) {
             const clienteData = clienteSnap.data();
             const faturas = clienteData.faturas || {};
             let totalFatura = 0; // Inicializa o total da fatura
-            
+
             if (faturas[mes] && faturas[mes].length > 0) {
                 resultadoConsulta.innerHTML = `<h3>Faturas de ${clienteData.nome} no mês de ${mes}:</h3>`;
-                
+
                 faturas[mes].forEach((fatura) => {
                     const valorFatura = fatura.valor || 0;
                     const tipoFatura = fatura.tipo;
@@ -764,7 +700,7 @@ window.mostrarFaturaDoMes = async function(clienteId, mes) {
                     if (['Compra', 'Pagamento', 'Transferência'].includes(tipoFatura)) {
                         totalFatura += tipoFatura === 'Compra' ? valorFatura : -valorFatura;
                     }
-                    
+
                     // Exibe os detalhes da fatura com borda
                     if (valorFatura > 0) {
                         resultadoConsulta.innerHTML += `
@@ -791,9 +727,6 @@ window.mostrarFaturaDoMes = async function(clienteId, mes) {
         return 0; // Retorna 0 em caso de erro
     }
 };
-
-
-
 
 
 
@@ -952,229 +885,6 @@ document.getElementById('transferirSaldoForm').addEventListener('submit', async 
 
 
 
-
-// Função para preencher os campos com os dados do cliente selecionado
-// async function preencherCamposCliente(clienteId) {
-//     try {
-//         const clienteRef = doc(db, "clientes", clienteId);
-//         const clienteSnapshot = await getDoc(clienteRef);
-        
-//         if (clienteSnapshot.exists()) {
-//             const data = clienteSnapshot.data();
-//             document.getElementById('novoNome').value = data.nome;
-//             document.getElementById('novoEmail').value = data.email;
-//             document.getElementById('novoLimiteCredito').value = data.limiteCredito;
-//         } else {
-//             console.log('Cliente não encontrado.');
-//         }
-//     } catch (error) {
-//         console.error('Erro ao buscar dados do cliente:', error);
-//     }
-// }
-
-// Evento para preencher os campos automaticamente quando um cliente é selecionado
-// document.getElementById('editarCliente').addEventListener('change', (event) => {
-//     const clienteId = event.target.value;
-//     if (clienteId) {
-//         preencherCamposCliente(clienteId);
-//     } else {
-//         // Limpar os campos se nenhum cliente for selecionado
-//         document.getElementById('novoNome').value = '';
-//         document.getElementById('novoEmail').value = '';
-//         document.getElementById('novoLimiteCredito').value = '';
-//     }
-// });
-
-// Função para filtrar clientes na seção de edição
-// window.filtrarClientesEditar = async function() {
-//     const input = document.getElementById('editarClienteInput').value.toLowerCase();
-//     const select = document.getElementById('editarCliente');
-
-//     if (input.length > 0) {
-//         try {
-//             // Limpa o select antes de preencher com novos dados
-//             select.innerHTML = '<option value="">Selecione um cliente</option>';
-
-//             // Consulta os clientes que correspondem à entrada do usuário
-//             const clientesSnapshot = await getDocs(collection(db, "clientes"));
-//             const clientes = [];
-
-//             clientesSnapshot.forEach(doc => {
-//                 const data = doc.data();
-//                 const nomeCliente = data.nome.toLowerCase();
-
-//                 // Se o nome do cliente contém a entrada, adiciona ao array
-//                 if (nomeCliente.includes(input)) {
-//                     clientes.push({ id: doc.id, nome: data.nome });
-//                 }
-//             });
-
-//             // Preenche o select com os clientes correspondentes
-//             clientes.forEach(cliente => {
-//                 const option = document.createElement('option');
-//                 option.value = cliente.id;
-//                 option.textContent = cliente.nome;
-//                 select.appendChild(option);
-//             });
-
-//             // Se houver clientes encontrados, selecione o primeiro
-//             if (clientes.length > 0) {
-//                 select.value = clientes[0].id; // Seleciona automaticamente o primeiro cliente encontrado
-//                 preencherCamposCliente(select.value); // Preenche os campos automaticamente
-//             }
-//         } catch (error) {
-//             console.error('Erro ao buscar clientes:', error);
-//         }
-//     } else {
-//         // Se o campo estiver vazio, recarrega todos os clientes
-//         await carregarClientes(select);
-//     }
-// }
-
-// // Carregar todos os clientes ao iniciar a página na seção de edição
-// window.onload = async function() {
-//     const editarClienteSelect = document.getElementById('editarCliente');
-//     await carregarClientes(editarClienteSelect);
-// }
-
-// // Função para editar um cliente
-// document.getElementById('editarForm').addEventListener('submit', async (event) => {
-//     event.preventDefault();
-//     const clienteId = document.getElementById('editarCliente').value;
-//     const novoNome = document.getElementById('novoNome').value;
-//     const novoEmail = document.getElementById('novoEmail').value;
-//     const novoLimiteCredito = parseFloat(document.getElementById('novoLimiteCredito').value);
-
-//     try {
-//         const clienteRef = doc(db, "clientes", clienteId);
-//         await updateDoc(clienteRef, {
-//             nome: novoNome,
-//             email: novoEmail,
-//             limiteCredito: novoLimiteCredito
-//         });
-//         alert('Cliente editado com sucesso!');
-//         await carregarClientes(editarClienteSelect); // Atualiza o select após edição
-//         document.getElementById('editarForm').reset();
-//     } catch (error) {
-//         console.error('Erro ao editar cliente:', error);
-//     }
-// });
-
-
-
-
-
-
-
-
-
-
-
-// Função para preencher os campos com os dados do cliente selecionado
-// async function preencherCamposClienteExcluir(clienteId) {
-//     try {
-//         const clienteRef = doc(db, "clientes", clienteId);
-//         const clienteSnapshot = await getDoc(clienteRef);
-        
-//         if (clienteSnapshot.exists()) {
-//             const data = clienteSnapshot.data();
-//             document.getElementById('clienteNome').value = data.nome;
-//             document.getElementById('clienteEmail').value = data.email;
-//         } else {
-//             console.log('Cliente não encontrado.');
-//         }
-//     } catch (error) {
-//         console.error('Erro ao buscar dados do cliente:', error);
-//     }
-// }
-
-// Função para filtrar clientes na seção de exclusão
-// window.filtrarClientesExcluir = async function() {
-//     const input = document.getElementById('clienteInputExcluir').value.toLowerCase();
-//     const select = document.getElementById('clienteExcluir');
-
-
-
-//     if (input.length > 0) {
-//         try {
-//             // Limpa o select antes de preencher com novos dados
-//             select.innerHTML = '<option value="">Selecione um cliente</option>';
-//             // Consulta todos os clientes
-//             const clientesSnapshot = await getDocs(collection(db, "clientes"));
-//             const clientes = [];
-
-//             // Filtra clientes que correspondem à entrada do usuário
-//             clientesSnapshot.forEach(doc => {
-//                 const data = doc.data();
-//                 const nomeCliente = data.nome.toLowerCase();
-
-//                 // Se o nome do cliente contém a entrada, adiciona ao array
-//                 if (nomeCliente.includes(input)) {
-//                     clientes.push({ id: doc.id, nome: data.nome });
-//                 }
-//             });
-
-//             // Preenche o select com os clientes correspondentes
-//             clientes.forEach(cliente => {
-//                 const option = document.createElement('option');
-//                 option.value = cliente.id;
-//                 option.textContent = cliente.nome;
-//                 select.appendChild(option);
-//             });
-
-//             // Se houver clientes encontrados, selecione o primeiro automaticamente
-//             if (clientes.length > 0) {
-//                 const primeiroClienteId = clientes[0].id; // Armazena o ID do primeiro cliente encontrado
-//                 select.value = primeiroClienteId; // Seleciona automaticamente o primeiro cliente encontrado
-//                 preencherCamposClienteExcluir(primeiroClienteId); // Preenche os campos automaticamente
-//             } else {
-//                 // Limpar os campos se nenhum cliente for encontrado
-//                 document.getElementById('clienteNome').value = '';
-//                 document.getElementById('clienteEmail').value = '';
-//             }
-//         } catch (error) {
-//             console.error('Erro ao buscar clientes:', error);
-//         }
-//     } else {
-//         // Se o campo estiver vazio, recarrega todos os clientes
-//         await carregarClientes(select);
-//     }
-// }
-
-
-
-// // Carregar todos os clientes quando a seção for exibida
-// document.getElementById('excluirForm').addEventListener('submit', async (event) => {
-//     event.preventDefault();
-//     const clienteId = document.getElementById('clienteExcluir').value;
-
-//     if (confirm(`Tem certeza que deseja excluir o cliente?`)) {
-//         try {
-//             const clienteRef = doc(db, "clientes", clienteId);
-//             await deleteDoc(clienteRef);
-//             alert('Cliente excluído com sucesso!');
-//             // Limpa os campos após a exclusão
-//             document.getElementById('excluirForm').reset();
-//             document.getElementById('clienteNome').value = '';
-//             document.getElementById('clienteEmail').value = '';
-//             // Atualiza a lista de clientes
-//             await carregarClientes(document.getElementById('clienteExcluir'));
-//         } catch (error) {
-//             console.error('Erro ao excluir cliente:', error);
-//             alert('Erro ao excluir cliente. Tente novamente.');
-//         }
-//     }
-// });
-
-// // Carregar clientes quando a página for carregada
-// window.onload = async function() {
-//     const clienteExcluirSelect = document.getElementById('clienteExcluir');
-//     await carregarClientes(clienteExcluirSelect);
-// }
-
-
-
-
 // Chamadas para atualização dos selects na inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     await atualizarSelectClientes();
@@ -1183,12 +893,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
+// ------------------------------------------------FIM DA SEÇÃO DE CONSULTAR CREDIARIO CLIENTE-------------------------------------
 
 
 
 
 
 
+
+
+//----------------------------------------------- INICIO DA SEÇÃO DE VISUALIZAR CLIENTES--------------------------------------------
 
 // Função para carregar todos os clientes do Firestore
 async function carregarClientesBd() {
@@ -1201,7 +915,7 @@ async function carregarClientesBd() {
             querySnapshot.forEach((doc) => {
                 const cliente = doc.data();
                 const clienteId = doc.id;
-                
+
                 const clienteDiv = document.createElement('div');
                 clienteDiv.classList.add('cliente-item');
                 clienteDiv.innerHTML = `
@@ -1227,7 +941,7 @@ async function carregarClientesBd() {
 }
 
 // Definindo as funções no escopo global
-window.editarCliente = async function(clienteId) {
+window.editarCliente = async function (clienteId) {
     try {
         const clienteRef = doc(db, "clientes", clienteId);
         const clienteSnap = await getDoc(clienteRef);
@@ -1261,7 +975,7 @@ function fecharModal() {
 
 
 // Definindo a função no escopo global
-window.salvarEdicao = async function(event) {
+window.salvarEdicao = async function (event) {
     event.preventDefault(); // Previne o envio do formulário
     const clienteId = document.getElementById("clienteIdModal").value;
 
@@ -1296,7 +1010,7 @@ window.salvarEdicao = async function(event) {
 
 
 
-window.excluirCliente = async function(clienteId) {
+window.excluirCliente = async function (clienteId) {
     const confirmar = confirm("Tem certeza de que deseja excluir este cliente?");
     if (confirmar) {
         try {
@@ -1320,3 +1034,5 @@ document.getElementById('menuVisualizar').addEventListener('click', () => {
     document.getElementById('consultaSection').style.display = 'none';
     carregarClientesBd(); // Chama a função para carregar clientes
 });
+
+//----------------------------------------- FIM DA SEÇÃO DE CONSULTAR CREDIARIO CLIENTE-------------------------------------------------
