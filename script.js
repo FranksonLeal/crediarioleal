@@ -732,26 +732,196 @@ window.mostrarFaturaDoMes = async function (clienteId, mes) {
 
 
 
+// Função para abrir o modal
+function abrirModal(modalId) {
+    document.getElementById(modalId).classList.add('show');
+}
 
-// Exibe o formulário de pagamento quando o botão 'Pagar Fatura' é clicado
+// Função para fechar o modal
+function fecharModal(modalId) {
+    document.getElementById(modalId).classList.remove('show');
+}
+
+// Abrir o modal para pagar fatura
 document.getElementById('pagarFaturaBtn').addEventListener('click', () => {
-    document.getElementById('pagarFaturaSection').style.display = 'block';
-    document.getElementById('transferirSaldoSection').style.display = 'none'; // Esconde o outro formulário, se estiver visível
+    abrirModal('modalPagar');
 });
 
-// Exibe o formulário de transferência de saldo quando o botão correspondente é clicado
+// Abrir o modal para transferir saldo
 document.getElementById('transferirSaldoBtn').addEventListener('click', () => {
-    document.getElementById('transferirSaldoSection').style.display = 'block';
-    document.getElementById('pagarFaturaSection').style.display = 'none'; // Esconde o outro formulário, se estiver visível
+    abrirModal('modalTransferir');
 });
 
-// Função para pagar fatura
-document.getElementById('pagarFaturaForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
+// Fechar o modal de pagar fatura
+document.getElementById('cancelarPagamento').addEventListener('click', () => {
+    fecharModal('modalPagar');
+});
 
+// Fechar o modal de transferir saldo
+document.getElementById('cancelarTransferencia').addEventListener('click', () => {
+    fecharModal('modalTransferir');
+});
+
+// Fechar o modal ao clicar fora do conteúdo
+window.addEventListener('click', (event) => {
+    if (event.target.id === 'modalPagar') {
+        fecharModal('modalPagar');
+    } else if (event.target.id === 'modalTransferir') {
+        fecharModal('modalTransferir');
+    }
+});
+
+
+
+
+
+// // Função para pagar fatura
+// document.getElementById('pagarFaturaForm').addEventListener('submit', async (event) => {
+//     event.preventDefault();
+
+//     const clienteId = document.getElementById('clienteConsulta').value;
+//     const mes = document.getElementById('mesesFaturas').value;
+//     let valorPagamento = parseFloat(document.getElementById('valorPagamento').value);
+
+//     if (!clienteId || !mes) {
+//         alert('Selecione um cliente e um mês!');
+//         return;
+//     }
+
+//     if (isNaN(valorPagamento) || valorPagamento <= 0) {
+//         alert('Digite um valor válido para o pagamento.');
+//         return;
+//     }
+
+//     try {
+//         const clienteRef = doc(db, "clientes", clienteId);
+//         const clienteSnap = await getDoc(clienteRef);
+
+//         if (clienteSnap.exists()) {
+//             const clienteData = clienteSnap.data();
+//             const faturas = clienteData.faturas || {};
+
+//             if (faturas[mes] && faturas[mes].length > 0) {
+//                 let totalFatura = faturas[mes].reduce((acc, fatura) => {
+//                     const valor = fatura.tipo === 'Compra' ? fatura.valor : 0;
+//                     const pagamento = fatura.tipo === 'Pagamento' ? fatura.valor : 0;
+//                     return acc + valor - pagamento;
+//                 }, 0);
+
+//                 if (valorPagamento > totalFatura) {
+//                     alert('O valor do pagamento não pode ser maior que o total da fatura.');
+//                     return;
+//                 }
+
+//                 faturas[mes].push({
+//                     tipo: 'Pagamento',
+//                     valor: valorPagamento,
+//                     data: new Date().toLocaleString()
+//                 });
+
+//                 await updateDoc(clienteRef, { faturas });
+//                 await mostrarFaturaDoMes(clienteId, mes);
+
+//                 alert('Pagamento realizado com sucesso!');
+//                 document.getElementById('pagarFaturaForm').reset();
+//                 document.getElementById('pagarFaturaSection').style.display = 'none';
+//             } else {
+//                 alert('Não há faturas disponíveis para o mês selecionado.');
+//             }
+//         } else {
+//             alert('Cliente não encontrado.');
+//         }
+//     } catch (error) {
+//         console.error('Erro ao processar pagamento:', error);
+//         alert('Erro ao processar o pagamento.');
+//     }
+// });
+
+
+
+
+// document.getElementById('transferirSaldoForm').addEventListener('submit', async (event) => {
+//     event.preventDefault();
+
+//     const clienteId = document.getElementById('clienteConsulta').value;
+//     const mesAtual = document.getElementById('mesesFaturas').value;
+//     let valorTransferencia = parseFloat(document.getElementById('valorTransferencia').value);
+
+//     if (isNaN(valorTransferencia) || valorTransferencia <= 0) {
+//         alert('Valor de transferência inválido!');
+//         return;
+//     }
+
+//     try {
+//         const clienteRef = doc(db, "clientes", clienteId);
+//         const clienteSnap = await getDoc(clienteRef);
+
+//         if (clienteSnap.exists()) {
+//             const clienteData = clienteSnap.data();
+//             const faturas = clienteData.faturas || {};
+
+//             if (faturas[mesAtual] && faturas[mesAtual].length > 0) {
+//                 // Calcula o total da fatura atual
+//                 let totalFatura = faturas[mesAtual].reduce((acc, fatura) => {
+//                     const valor = fatura.tipo === 'Compra' ? fatura.valor : 0;
+//                     const pagamento = fatura.tipo === 'Pagamento' ? fatura.valor : 0;
+//                     return acc + valor - pagamento;
+//                 }, 0);
+
+//                 // Verifica se o valor da transferência é maior que o total da fatura
+//                 if (valorTransferencia > totalFatura) {
+//                     alert('O valor a ser transferido é maior que o saldo disponível!');
+//                     return;
+//                 }
+
+//                 // Atualiza a fatura atual subtraindo o valor da transferência
+//                 faturas[mesAtual].push({
+//                     tipo: 'Transferência',  // Altera o tipo para 'Transferência'
+//                     valor: valorTransferencia, // Deduz o valor transferido da fatura atual
+//                     data: new Date().toLocaleString()
+//                 });
+
+//                 // Adiciona uma nova fatura para o próximo mês do tipo 'Compra'
+//                 // Adiciona uma nova fatura para o próximo mês do tipo 'Compra'
+// const proximoMes = getProximoMesNome(mesAtual);
+// if (!faturas[proximoMes]) {
+//     faturas[proximoMes] = [];
+// }
+
+// // Adiciona o valor positivo no próximo mês como uma nova fatura do tipo 'Compra'
+// const valorComAcrescimo = valorTransferencia * 1.10; // 10% de acréscimo
+// faturas[proximoMes].push({
+//     tipo: 'Compra', // Define o tipo como 'Compra'
+//     valor: valorComAcrescimo, // O valor da nova fatura é o mesmo da transferência
+//     data: new Date().toLocaleString()
+     
+// });
+
+
+
+//                 // Atualiza as faturas no banco de dados
+//                 await updateDoc(clienteRef, { faturas });
+//                 alert('Saldo transferido com sucesso!');
+
+//                 // Reseta o formulário
+//                 document.getElementById('transferirSaldoForm').reset();
+//             } else {
+//                 alert('Não há faturas disponíveis para o mês selecionado.');
+//             }
+//         } else {
+//             alert('Cliente não encontrado.');
+//         }
+//     } catch (error) {
+//         console.error('Erro ao transferir saldo:', error);
+//         alert('Erro ao transferir saldo. Tente novamente.');
+//     }
+// });
+
+// Função para confirmar o pagamento
+document.getElementById('confirmarPagamento').addEventListener('click', async () => {
     const clienteId = document.getElementById('clienteConsulta').value;
     const mes = document.getElementById('mesesFaturas').value;
-    let valorPagamento = parseFloat(document.getElementById('valorPagamento').value);
+    let valorPagamento = parseFloat(document.getElementById('valorPagamentoModal').value);
 
     if (!clienteId || !mes) {
         alert('Selecione um cliente e um mês!');
@@ -794,7 +964,7 @@ document.getElementById('pagarFaturaForm').addEventListener('submit', async (eve
 
                 alert('Pagamento realizado com sucesso!');
                 document.getElementById('pagarFaturaForm').reset();
-                document.getElementById('pagarFaturaSection').style.display = 'none';
+                document.getElementById('modalPagar').style.display = 'none';
             } else {
                 alert('Não há faturas disponíveis para o mês selecionado.');
             }
@@ -807,15 +977,11 @@ document.getElementById('pagarFaturaForm').addEventListener('submit', async (eve
     }
 });
 
-
-
-
-document.getElementById('transferirSaldoForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-
+// Função para confirmar a transferência de saldo
+document.getElementById('confirmarTransferencia').addEventListener('click', async () => {
     const clienteId = document.getElementById('clienteConsulta').value;
     const mesAtual = document.getElementById('mesesFaturas').value;
-    let valorTransferencia = parseFloat(document.getElementById('valorTransferencia').value);
+    let valorTransferencia = parseFloat(document.getElementById('valorTransferenciaModal').value);
 
     if (isNaN(valorTransferencia) || valorTransferencia <= 0) {
         alert('Valor de transferência inválido!');
@@ -831,45 +997,40 @@ document.getElementById('transferirSaldoForm').addEventListener('submit', async 
             const faturas = clienteData.faturas || {};
 
             if (faturas[mesAtual] && faturas[mesAtual].length > 0) {
-                // Calcula o total da fatura atual
                 let totalFatura = faturas[mesAtual].reduce((acc, fatura) => {
                     const valor = fatura.tipo === 'Compra' ? fatura.valor : 0;
                     const pagamento = fatura.tipo === 'Pagamento' ? fatura.valor : 0;
                     return acc + valor - pagamento;
                 }, 0);
 
-                // Verifica se o valor da transferência é maior que o total da fatura
                 if (valorTransferencia > totalFatura) {
                     alert('O valor a ser transferido é maior que o saldo disponível!');
                     return;
                 }
 
-                // Atualiza a fatura atual subtraindo o valor da transferência
                 faturas[mesAtual].push({
-                    tipo: 'Transferência',  // Altera o tipo para 'Transferência'
-                    valor: valorTransferencia, // Deduz o valor transferido da fatura atual
+                    tipo: 'Transferência',
+                    valor: valorTransferencia,
                     data: new Date().toLocaleString()
                 });
 
-                // Adiciona uma nova fatura para o próximo mês do tipo 'Compra'
                 const proximoMes = getProximoMesNome(mesAtual);
                 if (!faturas[proximoMes]) {
                     faturas[proximoMes] = [];
                 }
 
-                // Adiciona o valor positivo no próximo mês como uma nova fatura do tipo 'Compra'
+                const valorComAcrescimo = valorTransferencia * 1.10;
                 faturas[proximoMes].push({
-                    tipo: 'Compra', // Define o tipo como 'Compra'
-                    valor: valorTransferencia, // O valor da nova fatura é o mesmo da transferência
-                    data: `Transferência de saldo de ${mesAtual}`
+                    tipo: 'Compra',
+                    valor: valorComAcrescimo,
+                    data: new Date().toLocaleString()
                 });
 
-                // Atualiza as faturas no banco de dados
                 await updateDoc(clienteRef, { faturas });
                 alert('Saldo transferido com sucesso!');
 
-                // Reseta o formulário
                 document.getElementById('transferirSaldoForm').reset();
+                document.getElementById('modalTransferir').style.display = 'none';
             } else {
                 alert('Não há faturas disponíveis para o mês selecionado.');
             }
@@ -881,7 +1042,6 @@ document.getElementById('transferirSaldoForm').addEventListener('submit', async 
         alert('Erro ao transferir saldo. Tente novamente.');
     }
 });
-
 
 
 
@@ -904,6 +1064,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 //----------------------------------------------- INICIO DA SEÇÃO DE VISUALIZAR CLIENTES--------------------------------------------
 
+let clientes = []; // Variável global para armazenar os clientes
+
 // Função para carregar todos os clientes do Firestore
 async function carregarClientesBd() {
     const listaClientes = document.getElementById('listaClientes');
@@ -914,22 +1076,11 @@ async function carregarClientesBd() {
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
                 const cliente = doc.data();
-                const clienteId = doc.id;
+                cliente.id = doc.id; // Adiciona o id do documento ao objeto cliente
+                clientes.push(cliente); // Armazena o cliente na variável global
 
-                const clienteDiv = document.createElement('div');
-                clienteDiv.classList.add('cliente-item');
-                clienteDiv.innerHTML = `
-                    <p><strong>Nome:</strong> ${cliente.nome}</p>
-                    <p><strong>Email:</strong> ${cliente.email}</p>
-                    <p><strong>Telefone:</strong> ${cliente.telefone}</p>
-                    <p><strong>CEP:</strong> ${cliente.cep || "Não informado"}</p>
-                    <p><strong>Endereço:</strong> ${cliente.endereco || "Não informado"}</p>
-                    <p><strong>Limite de Crédito:</strong> R$ ${cliente.limiteCredito.toFixed(2)}</p>
-                    <button onclick="editarCliente('${clienteId}')">Editar</button>
-                    <button onclick="excluirCliente('${clienteId}')">Excluir</button>
-                    <hr>
-                `;
-                listaClientes.appendChild(clienteDiv);
+                // Adiciona cliente à lista
+                adicionarClienteNaLista(cliente);
             });
         } else {
             listaClientes.innerHTML = "<p>Nenhum cliente cadastrado.</p>";
@@ -939,6 +1090,61 @@ async function carregarClientesBd() {
         listaClientes.innerHTML = "<p>Erro ao carregar clientes. Tente novamente.</p>";
     }
 }
+
+// Função para adicionar um cliente na lista
+function adicionarClienteNaLista(cliente) {
+    const listaClientes = document.getElementById('listaClientes');
+    const clienteDiv = document.createElement('div');
+    clienteDiv.classList.add('cliente-item');
+    clienteDiv.innerHTML = `
+        <p><strong>Nome:</strong> ${cliente.nome}</p>
+        <p><strong>Email:</strong> ${cliente.email}</p>
+        <p><strong>Telefone:</strong> ${cliente.telefone}</p>
+        <p><strong>CEP:</strong> ${cliente.cep || "Não informado"}</p>
+        <p><strong>Endereço:</strong> ${cliente.endereco || "Não informado"}</p>
+        <p><strong>Limite de Crédito:</strong> R$ ${cliente.limiteCredito.toFixed(2)}</p>
+        <button onclick="editarCliente('${cliente.id}')">Editar</button>
+        <button onclick="excluirCliente('${cliente.id}')">Excluir</button>
+        <hr>
+    `;
+    listaClientes.appendChild(clienteDiv);
+}
+
+// Função para filtrar clientes
+// Definindo as funções no escopo global
+window.filtrarClientes = function () {
+    const input = document.getElementById('buscaClientes').value.toLowerCase();
+    const listaClientes = document.getElementById('listaClientes');
+    listaClientes.innerHTML = ''; // Limpa a lista antes de filtrar
+
+    // Primeiro, filtra os clientes que correspondem ao input
+    const clientesFiltrados = clientes.filter(cliente => 
+        cliente.nome.toLowerCase().includes(input)
+    );
+
+    // Depois, adiciona os clientes filtrados na lista
+    if (clientesFiltrados.length > 0) {
+        clientesFiltrados.forEach(cliente => {
+            adicionarClienteNaLista(cliente); // Adiciona cliente filtrado na lista
+        });
+    } else {
+        listaClientes.innerHTML = "<p>Nenhum cliente encontrado.</p>";
+    }
+
+    // Adiciona os clientes que não correspondem ao filtro (não exibidos) abaixo dos filtrados
+    const clientesRestantes = clientes.filter(cliente => 
+        !cliente.nome.toLowerCase().includes(input)
+    );
+
+    // Adiciona os clientes restantes na lista
+    clientesRestantes.forEach(cliente => {
+        adicionarClienteNaLista(cliente);
+    });
+};
+
+// Chame essa função quando a seção de visualizar clientes for exibida
+carregarClientesBd();
+
 
 // Definindo as funções no escopo global
 window.editarCliente = async function (clienteId) {
@@ -968,9 +1174,19 @@ window.editarCliente = async function (clienteId) {
     }
 }
 
-function fecharModal() {
+// Definindo fecharModal no escopo global
+window.fecharModal = function() {
     document.getElementById("modalEditarCliente").style.display = "none";
 }
+
+// Fechar o modal quando o usuário clicar fora do conteúdo do modal
+window.onclick = function(event) {
+    const modal = document.getElementById("modalEditarCliente");
+    if (event.target === modal) {
+        fecharModal(); // Agora deve funcionar sem erros
+    }
+}
+
 
 
 
@@ -1032,7 +1248,23 @@ document.getElementById('menuVisualizar').addEventListener('click', () => {
     document.getElementById('excluirSection').style.display = 'none';
     document.getElementById('compraSection').style.display = 'none';
     document.getElementById('consultaSection').style.display = 'none';
-    carregarClientesBd(); // Chama a função para carregar clientes
+    
 });
 
 //----------------------------------------- FIM DA SEÇÃO DE CONSULTAR CREDIARIO CLIENTE-------------------------------------------------
+
+
+
+// Seleciona todos os links de navegação
+const navLinks = document.querySelectorAll('.nav-link');
+
+// Adiciona um evento de clique a cada link
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        // Remove a classe 'active' de todos os links
+        navLinks.forEach(nav => nav.classList.remove('active'));
+        
+        // Adiciona a classe 'active' ao link clicado
+        link.classList.add('active');
+    });
+});

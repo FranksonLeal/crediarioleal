@@ -18,10 +18,10 @@
             <h1>Sistema de Crediário</h1>
         </div>
         <nav>
-            <a href="#" id="menuCadastro">Cadastrar Cliente</a>
-            <a href="#" id="menuVisualizar">Visualizar Clientes</a>
-            <a href="#" id="menuCompra">Registrar Compra</a>
-            <a href="#" id="menuConsulta">Consultar Crediário</a>
+            <a href="#" id="menuCadastro" class="nav-link">Cadastrar Cliente</a>
+            <a href="#" id="menuVisualizar" class="nav-link">Visualizar Clientes</a>
+            <a href="#" id="menuCompra" class="nav-link">Registrar Compra</a>
+            <a href="#" id="menuConsulta" class="nav-link">Consultar Crediário</a>
         </nav>
     </header>
     
@@ -131,11 +131,12 @@
 
 
 
-        <!-- Seção de Visualizar Clientes -->
-    <section id="visualizarClientesSection" style="display: none;">
-        <h2>Clientes Cadastrados</h2>
-        <div id="listaClientes"></div> <!-- Div para exibir a lista de clientes -->
-    </section>
+    <!-- Seção de Visualizar Clientes -->
+<section id="visualizarClientesSection" style="display: none;">
+    <h2>Clientes Cadastrados</h2>
+    <input type="text" id="buscaClientes" placeholder="Digite o nome do cliente..." oninput="filtrarClientes()">
+    <div id="listaClientes"></div> <!-- Div para exibir a lista de clientes -->
+</section>
 
 
 
@@ -149,7 +150,7 @@
                 <!-- A mensagem formatada será inserida aqui -->
             </div>
             
-            <textarea id="mensagem" style="width: 100%; height: 150px; font-size: 16px; color: #333;"></textarea>
+            <textarea id="mensagem" style="width: 96%; height: 150px; font-size: 16px; color: #333;"></textarea>
             <select id="metodoEnvio">
                 <option value="whatsapp">WhatsApp</option>
                 <option value="email">Email</option>
@@ -158,6 +159,30 @@
             <button id="cancelarEnvio">Cancelar</button>
         </div>
     </div>
+
+
+    <!-- Modal para Pagar Fatura -->
+<div id="modalPagar">
+    <div>
+        <h2>Pagar Fatura</h2>
+        <label for="valorPagamentoModal">Valor do Pagamento:</label>
+        <input type="number" id="valorPagamentoModal" placeholder="Valor do Pagamento" min="0" step="0.01" required>
+        <button id="confirmarPagamento">Confirmar Pagamento</button>
+        <button id="cancelarPagamento">Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal para Transferir Saldo -->
+<div id="modalTransferir">
+    <div>
+        <h2>Transferir Saldo</h2>
+        <label for="valorTransferenciaModal">Valor a Transferir:</label>
+        <input type="number" id="valorTransferenciaModal" placeholder="Valor a Transferir" min="0" step="0.01" required>
+        <button id="confirmarTransferencia">Transferir</button>
+        <button id="cancelarTransferencia">Cancelar</button>
+    </div>
+</div>
+
 
 
 
