@@ -13,32 +13,152 @@
 
 <body>
     <header>
-        <h1>Sistema de Crediário</h1>
+        <div class="header-container">
+            <img src="img/logo.png" alt="Logo do Sistema" class="logo">
+            <h1>Sistema de Crediário</h1>
+        </div>
         <nav>
-            <button id="menuCadastro">Cadastrar Cliente</button>
-            <button id="menuEditar">Editar Cliente</button>
-            <button id="menuExcluir">Excluir Cliente</button>
-            <button id="menuCompra">Registrar Compra</button>
-            <button id="menuConsulta">Consultar Crediário</button>
+            <a href="#" id="menuCadastro">Cadastrar Cliente</a>
+            <a href="#" id="menuVisualizar">Visualizar Clientes</a>
+            <a href="#" id="menuCompra">Registrar Compra</a>
+            <a href="#" id="menuConsulta">Consultar Crediário</a>
         </nav>
     </header>
+    
 
     <main>
         <section id="cadastroSection" style="display: none;">
             <h2>Cadastrar Cliente</h2>
-            <form id="clienteForm">
+            <form id="clienteForm" class="formulario">
                 <label for="nome">Nome:</label>
                 <input type="text" id="nome" placeholder="Nome" required>
-
+        
                 <label for="email">Email:</label>
                 <input type="email" id="email" placeholder="Email" required>
-
+        
+                <label for="telefone">Telefone:</label>
+                <input type="text" id="telefone" placeholder="(92) 99999-9999" required>
+        
+                <label for="cep">CEP (Opcional):</label>
+                <input type="text" id="cep" placeholder="CEP" maxlength="8" oninput="buscarEnderecoPorCEP()">
+        
+                <label for="endereco">Endereço:</label>
+                <input type="text" id="endereco" placeholder="Endereço" required>
+        
                 <label for="limiteCredito">Limite de Crédito:</label>
                 <input type="number" id="limiteCredito" placeholder="Limite de Crédito" required min="0">
-
+        
                 <button type="submit">Cadastrar</button>
             </form>
         </section>
+        
+
+
+
+        <div id="modalEditarCliente" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="fecharModal()">&times;</span>
+                <h2>Editar Cliente</h2>
+                <form id="clienteFormModal" onsubmit="salvarEdicao(event)"> <!-- Adicione o onsubmit aqui -->
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nomeModal" placeholder="Nome" required>
+            
+                    <label for="email">Email:</label>
+                    <input type="email" id="emailModal" placeholder="Email" required>
+            
+                    <label for="telefone">Telefone:</label>
+                    <input type="text" id="telefoneModal" placeholder="(92) 99999-9999" required>
+            
+                    <label for="cep">CEP (Opcional):</label>
+                    <input type="text" id="cepModal" placeholder="CEP" maxlength="8" oninput="buscarEnderecoPorCEP()">
+            
+                    <label for="endereco">Endereço:</label>
+                    <input type="text" id="enderecoModal" placeholder="Endereço" required>
+            
+                    <label for="limiteCredito">Limite de Crédito:</label>
+                    <input type="number" id="limiteCreditoModal" placeholder="Limite de Crédito" required min="0">
+            
+                    <input type="hidden" id="clienteIdModal"> <!-- ID do cliente em edição -->
+                    <button type="submit">Salvar</button> <!-- Removido onclick para o botão -->
+                </form>
+            </div>
+        </div>
+        
+        <!-- Estilo do Modal -->
+        <style>
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgb(0,0,0); 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        </style>
+        
+
+
+
+
+
+
+        <!-- Seção de Visualizar Clientes -->
+    <section id="visualizarClientesSection" style="display: none;">
+        <h2>Clientes Cadastrados</h2>
+        <div id="listaClientes"></div> <!-- Div para exibir a lista de clientes -->
+    </section>
+
+
+
+
+    <div id="modalCobrar">
+        <div>
+            <h2>Mensagem de Cobrança</h2>
+            
+            <!-- Div para mostrar a mensagem formatada -->
+            <div id="mensagemFormatada" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; background-color: #f9f9f9; border-radius: 5px;">
+                <!-- A mensagem formatada será inserida aqui -->
+            </div>
+            
+            <textarea id="mensagem" style="width: 100%; height: 150px; font-size: 16px; color: #333;"></textarea>
+            <select id="metodoEnvio">
+                <option value="whatsapp">WhatsApp</option>
+                <option value="email">Email</option>
+            </select>
+            <button id="enviarMensagem">Enviar Mensagem</button>
+            <button id="cancelarEnvio">Cancelar</button>
+        </div>
+    </div>
+    
+    
+
+        
 
         <!-- <div id="compraSection" style="display: none;">
             <h2>Registrar Compra</h2>
@@ -90,10 +210,14 @@
                 
                 <button type="submit">Consultar Faturas</button>
             </form>
+            
             <div id="resultadoConsulta"></div>
             
             <!-- Botão para pagar fatura -->
             <button id="pagarFaturaBtn">Pagar Fatura</button>
+            
+            <!-- Botão para cobrar fatura -->
+            <button id="cobrarFaturaBtn">Cobrar Fatura</button>
             
             <!-- Formulário para pagamento (escondido por padrão) -->
             <div id="pagarFaturaSection" style="display: none;">
@@ -116,6 +240,21 @@
                 </form>
             </div>
         </div>
+        
+        <!-- Script JavaScript para manipular o botão -->
+        <script>
+            document.getElementById('cobrarFaturaBtn').onclick = async function () {
+                const clienteId = document.getElementById('clienteConsulta').value; // Obtém o ID do cliente selecionado
+                const mes = document.getElementById('mesesFaturas').value; // Obtém o mês selecionado
+        
+                if (clienteId && mes) {
+                    await mostrarModal(clienteId, mes); // Chama a função mostrarModal com os parâmetros corretos
+                } else {
+                    alert('Por favor, selecione um cliente e um mês antes de cobrar a fatura.');
+                }
+            };
+        </script>
+        
         
         
 
