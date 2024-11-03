@@ -68,11 +68,12 @@
                 </select>
                 <br>
                 <label for="valor">Valor da Compra:</label>
-                <input type="number" id="valor" placeholder="Valor da Compra" required min="0">
+                <input type="number" id="valor" placeholder="Valor da Compra" required min="0" step="0.01">
                 <br>
                 <button type="submit">Registrar Compra</button>
             </form>
         </div>
+        
         
 
         <div id="consultaSection" style="display: none;">
@@ -80,7 +81,6 @@
             <form id="consultaForm">
                 <label for="clienteConsultaInput">Cliente:</label>
                 <input type="text" id="clienteConsultaInput" placeholder="Digite o nome do cliente" oninput="filtrarClientesConsulta()">
-        
                 <select id="clienteConsulta" required>
                     <option value="">Selecione um cliente</option>
                 </select>
@@ -93,18 +93,30 @@
             <div id="resultadoConsulta"></div>
             
             <!-- Botão para pagar fatura -->
-            <button id="pagarFatura">Pagar Fatura</button>
+            <button id="pagarFaturaBtn">Pagar Fatura</button>
             
-            <div id="faturaDetalhes"></div>
-            <div id="transferirSaldo" style="display: block;">
+            <!-- Formulário para pagamento (escondido por padrão) -->
+            <div id="pagarFaturaSection" style="display: none;">
+                <h3>Pagar Fatura</h3>
+                <form id="pagarFaturaForm">
+                    <label for="valorPagamento">Valor do Pagamento:</label>
+                    <input type="number" id="valorPagamento" placeholder="Valor do Pagamento" min="0" step="0.01" required>
+                    <button type="submit">Confirmar Pagamento</button>
+                </form>
+            </div>
+            
+            <!-- Formulário para transferência de saldo -->
+            <button id="transferirSaldoBtn">Transferir Saldo para o Próximo Mês</button>
+            <div id="transferirSaldoSection" style="display: none;">
                 <h3>Transferir Saldo para o Próximo Mês</h3>
                 <form id="transferirSaldoForm">
                     <label for="valorTransferencia">Valor a Transferir:</label>
-                    <input type="number" id="valorTransferencia" placeholder="Valor a Transferir" min="0">
+                    <input type="number" id="valorTransferencia" placeholder="Valor a Transferir" min="0" step="0.01" required>
                     <button type="submit">Transferir para Próximo Mês</button>
                 </form>
             </div>
         </div>
+        
         
 
         <section id="editarSection" style="display: none;">
